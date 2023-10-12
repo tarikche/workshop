@@ -5,6 +5,7 @@ namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
@@ -21,8 +22,9 @@ class RequestController extends AbstractController
     }
 
     #[Route('/request', name: 'app_request')]
-    public function index(): JsonResponse
+    public function index(request $request): JsonResponse
     {
+        $data = json_decode($request->getContent(), true);
         $headers = [
             'Authorization' => 'Bearer ' . $_ENV['OPENAI_API_KEY'], // Add a space after 'Bearer'
             'Content-Type' => 'application/json',
@@ -34,12 +36,18 @@ class RequestController extends AbstractController
                 'messages' => [
                     [
                         'role' => 'user',
-                        'content' => 'tes un humain et ton  ',
+                        'content' => $data['message'],
                     ],
                 ],
             ],
         ]);
+        $data=$response->toArray();
+        return new JsonResponse($data['choices'][0]['message']['content']);
+    }
 
-        return new JsonResponse($response->toArray());
+    #[Route('/home', name: 'home')]
+    public function home()
+    {
+        return $this->render('home.html.twig');
     }
 }
